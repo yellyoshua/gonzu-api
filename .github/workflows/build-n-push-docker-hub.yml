@@ -33,8 +33,8 @@ jobs:
             docker rm -f gonzu-api mongodb
             docker run -d --rm -p 27017:27017 --name mongodb --network gonzu_bridge_network -v /app/mongodb/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=${{ secrets.DATABASE_USERNAME }} -e MONGO_INITDB_ROOT_PASSWORD=${{ secrets.DATABASE_PASSWORD }} mongo
             docker run -d --rm -p 4000:4000 --name gonzu-api \
-              -e MONGO_URI=${{ secrets.MONGO_URI }} -e DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }} \
-              -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} -e S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }} \
-              -e S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }} -e S3_REGION=${{ secrets.S3_REGION }} \
-              -e S3_BUCKET=${{ secrets.S3_BUCKET }} \
-              ${{ github.repository }}
+              -e MONGO_URI="${{ secrets.MONGO_URI }}" -e DATABASE_USERNAME="${{ secrets.DATABASE_USERNAME }}" \
+              -e DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" -e S3_ACCESS_KEY="${{ secrets.S3_ACCESS_KEY }}" \
+              -e S3_SECRET_KEY="${{ secrets.S3_SECRET_KEY }}" -e S3_REGION="${{ secrets.S3_REGION }}" \
+              -e S3_BUCKET="${{ secrets.S3_BUCKET }}" \
+              ${{ github.repository }}:${{ github.sha }}
