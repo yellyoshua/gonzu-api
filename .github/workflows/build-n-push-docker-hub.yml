@@ -21,14 +21,16 @@ jobs:
           tag_with_ref: true
           tag_with_sha: false
           tags: ${{ github.sha }}
-      - name: Deploy SSH
+
+
+          
+      - name: Running and Deploying with SSH to Production
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            echo ${{ secrets.DATABASE_USERNAME }}
             docker login -u ${{ secrets.DkrHub_USERNAME }} -p ${{ secrets.DkrHub_PASSWORD }}
             docker rm -f gonzu-api mongodb
             docker run -d --rm -p 27017:27017 --name mongodb --network gonzu_bridge_network -v /app/mongodb/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=${{ secrets.DATABASE_USERNAME }} -e MONGO_INITDB_ROOT_PASSWORD=${{ secrets.DATABASE_PASSWORD }} mongo

@@ -1,63 +1,63 @@
-module.exports = ({ env }) => {
+module.exports = ({env}) => {
   const production = {
-    connector: "mongoose",
+    connector: 'mongoose',
     settings: {
-      client: "mongo",
-      host: env("DATABASE_HOST"),
-      port: env("DATABASE_PORT"),
-      database: env("DATABASE_NAME"),
-      username: env("DATABASE_USERNAME"),
-      password: env("DATABASE_PASSWORD"),
+      client: 'mongo',
+      host: env('DATABASE_HOST'),
+      port: env('DATABASE_PORT'),
+      database: env('DATABASE_NAME'),
+      username: env('DATABASE_USERNAME'),
+      password: env('DATABASE_PASSWORD')
     },
     options: {
-      authenticationDatabase: "admin",
-      ssl: false,
-    },
+      authenticationDatabase: 'admin',
+      ssl: false
+    }
   };
 
   const production_atlas = {
-    connector: "mongoose",
+    connector: 'mongoose',
     settings: {
-      uri: env("MONGO_URI"),
+      uri: env('MONGO_URI')
     },
     options: {
-      ssl: true,
-    },
+      ssl: true
+    }
   };
 
   const development = {
-    connector: "bookshelf",
+    connector: 'bookshelf',
     settings: {
-      client: "sqlite",
-      filename: ".tmp/data.db",
+      client: 'sqlite',
+      filename: '.tmp/data.db'
     },
     options: {
-      useNullAsDefault: true,
-    },
+      useNullAsDefault: true
+    }
   };
 
-  if (env("NODE_ENV") == "production") {
-    if (env("MONGO_URI") !== "") {
+  if (env('NODE_ENV') == 'production') {
+    if (env('MONGO_URI') !== '') {
       return {
-        defaultConnection: "default",
+        defaultConnection: 'default',
         connections: {
-          default: production_atlas,
-        },
+          default: production_atlas
+        }
       };
     }
 
     return {
-      defaultConnection: "default",
+      defaultConnection: 'default',
       connections: {
-        default: production,
-      },
+        default: production
+      }
     };
   }
 
   return {
-    defaultConnection: "default",
+    defaultConnection: 'default',
     connections: {
-      default: development,
-    },
+      default: development
+    }
   };
 };
