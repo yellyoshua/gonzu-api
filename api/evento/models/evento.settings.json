@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "eventos",
+  "info": {
+    "name": "Evento"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true
+  },
+  "attributes": {
+    "Titulo": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "uid",
+      "targetField": "Titulo"
+    },
+    "Fecha": {
+      "type": "datetime",
+      "required": true
+    },
+    "Descripcion": {
+      "type": "richtext",
+      "required": true
+    },
+    "Lugar": {
+      "type": "enumeration",
+      "enum": [
+        "Internet",
+        "Institucion"
+      ],
+      "required": true,
+      "default": "Institucion"
+    }
+  }
+}
