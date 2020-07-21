@@ -19,7 +19,32 @@ jobs:
       with:
         username: ${{ secrets.DkrHub_USERNAME }}
         password: ${{ secrets.DkrHub_PASSWORD }}
-        repository: gonzu/api
+        repository: ${{ github.repository }}
         tag_with_ref: true
-        tag_with_sha: true
+        tag_with_sha: false
         tags: ${{ github.sha }}
+    - name: Deploy SSH
+      uses: appleboy/ssh-action@master
+      env:
+        S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+        S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+        S3_REGION: ${{ secrets.S3_REGION }}
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        DB_URI: ${{ secrets.MONGO_URI }}
+        DB_USERNAME: ${{ secrets.DATABASE_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        script: |
+          echo $DB_USERNAME
+          docker network create --subnet 192.168.0.0/24 gonzu_bridge_network
+          docker rm -f gonzu-api mongodb
+          docker run -d --rm -p 27017:27017 --name mongodb --network gonzu_bridge_network -v /app/mongodb/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=$DATABASE_USERNAME -e MONGO_INITDB_ROOT_PASSWORD=$DATABASE_PASSWORD mongo
+          docker run -d --rm -p 4000:4000 --name gonzu-api \
+            -e MONGO_URI=$DB_URI -e DATABASE_USERNAME=$DB_USERNAME \
+            -e DATABASE_PASSWORD=$DB_PASSWORD -e S3_ACCESS_KEY=$S3_ACCESS_KEY \
+            -e S3_SECRET_KEY=$S3_SECRET_KEY -e S3_REGION=$S3_REGION \
+            -e S3_BUCKET=$S3_BUCKET \
+            ${{ github.repository }}

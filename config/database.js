@@ -1,13 +1,13 @@
 module.exports = ({ env }) => {
   const production = {
-    connector: 'mongoose',
+    connector: "mongoose",
     settings: {
-      client: env("DATABASE_CLIENT", "mongo"),
-      host: env("DATABASE_HOST","localhost"),
-      port: env("DATABASE_PORT",27017),
-      database: env("DATABASE_NAME","strapi"),
-      username: env("DATABASE_USERNAME","root"),
-      password: env("DATABASE_PASSWORD","dbpwd")
+      client: "mongo",
+      host: env("DATABASE_HOST"),
+      port: env("DATABASE_PORT"),
+      database: env("DATABASE_NAME"),
+      username: env("DATABASE_USERNAME"),
+      password: env("DATABASE_PASSWORD"),
     },
     options: {
       authenticationDatabase: "admin",
@@ -15,22 +15,49 @@ module.exports = ({ env }) => {
     },
   };
 
+  const production_atlas = {
+    connector: "mongoose",
+    settings: {
+      uri: env("MONGO_URI"),
+    },
+    options: {
+      ssl: true,
+    },
+  };
+
   const development = {
     connector: "bookshelf",
     settings: {
       client: "sqlite",
-      filename: ".tmp/data.db"
+      filename: ".tmp/data.db",
     },
     options: {
-      "useNullAsDefault": true
-    }
+      useNullAsDefault: true,
+    },
   };
 
+  if (env("NODE_ENV") == "production") {
+    if (env("MONGO_URI") !== "") {
+      return {
+        defaultConnection: "default",
+        connections: {
+          default: production_atlas,
+        },
+      };
+    }
+
+    return {
+      defaultConnection: "default",
+      connections: {
+        default: production,
+      },
+    };
+  }
 
   return {
-    defaultConnection: 'default',
+    defaultConnection: "default",
     connections: {
-      default: env("NODE_ENV") == "production" ? production  : development,
+      default: development,
     },
-  }
+  };
 };
