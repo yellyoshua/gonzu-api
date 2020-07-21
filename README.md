@@ -1,3 +1,3 @@
-# Strapi application
+# Gonzu api develop with Strapi application
 
-A quick description of your strapi application
+[api] Unidad Educativa Cardenal Gonzalez Zumarraga, proyectos desarrollador
