@@ -53,14 +53,9 @@
       "plugin": "users-permissions",
       "configurable": false
     },
-    "publicaciones": {
-      "via": "autor",
-      "model": "publicaciones"
-    },
-    "url": {
-      "type": "uid",
-      "targetField": "username",
-      "required": true
+    "publications": {
+      "collection": "publication",
+      "via": "autor"
     }
   }
 }

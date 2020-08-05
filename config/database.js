@@ -1,21 +1,22 @@
-module.exports = ({env}) => {
-  const production = {
-    connector: 'mongoose',
+module.exports = ({ env }) => {
+  const mysql_production = {
+    connector: 'bookshelf',
     settings: {
-      client: 'mongo',
+      client: 'mysql',
       host: env('DATABASE_HOST'),
-      port: env('DATABASE_PORT'),
-      database: env('DATABASE_NAME'),
+      port: env('DATABASE_PORT', 5432),
       username: env('DATABASE_USERNAME'),
-      password: env('DATABASE_PASSWORD')
+      password: env('DATABASE_PASSWORD'),
+      database: env('DATABASE_NAME', 'strapi'),
+      timezone: 'America/Guayaquil',
+      ssl: false
     },
     options: {
-      authenticationDatabase: 'admin',
-      ssl: false
+      debug: false
     }
   };
 
-  const production_atlas = {
+  const mongodb_atlas = {
     connector: 'mongoose',
     settings: {
       uri: env('MONGO_URI')
@@ -37,11 +38,11 @@ module.exports = ({env}) => {
   };
 
   if (env('NODE_ENV') == 'production') {
-    if (env('MONGO_URI') !== '') {
+    if (env('MONGO_URI')) {
       return {
         defaultConnection: 'default',
         connections: {
-          default: production_atlas
+          default: mongodb_atlas
         }
       };
     }
@@ -49,7 +50,7 @@ module.exports = ({env}) => {
     return {
       defaultConnection: 'default',
       connections: {
-        default: production
+        default: mysql_production
       }
     };
   }

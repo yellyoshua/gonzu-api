@@ -24,5 +24,3 @@ RUN npm run build
 EXPOSE 4000
 
 CMD [ "npm", "start" ]
-
-# docker run -d -p 27017:27017 --name mongodb -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=dbpwd mongo
