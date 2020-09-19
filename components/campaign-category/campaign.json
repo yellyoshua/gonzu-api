@@ -1,0 +1,41 @@
+{
+  "collectionName": "components_campaign_category_campaigns",
+  "info": {
+    "name": "Campaign",
+    "icon": "book-reader"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "commitments": {
+      "type": "richtext"
+    },
+    "integrants": {
+      "type": "component",
+      "repeatable": true,
+      "component": "campaign-category.integrants"
+    },
+    "commitments_file": {
+      "model": "file",
+      "via": "related",
+      "allowedTypes": [
+        "files"
+      ],
+      "plugin": "upload",
+      "required": false
+    },
+    "cover_image": {
+      "model": "file",
+      "via": "related",
+      "allowedTypes": [
+        "images"
+      ],
+      "plugin": "upload",
+      "required": false
+    }
+  }
+}
