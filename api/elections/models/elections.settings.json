@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "elections",
+  "info": {
+    "name": "elections"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "campaigns": {
+      "type": "component",
+      "repeatable": true,
+      "component": "campaign-category.campaign"
+    }
+  }
+}

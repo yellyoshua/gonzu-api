@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_campaign_category_integrants",
+  "info": {
+    "name": "prospect",
+    "icon": "address-book"
+  },
+  "options": {},
+  "attributes": {
+    "names": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

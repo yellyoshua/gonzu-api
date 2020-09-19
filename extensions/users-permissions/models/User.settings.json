@@ -52,10 +52,6 @@
       "via": "users",
       "plugin": "users-permissions",
       "configurable": false
-    },
-    "publications": {
-      "collection": "publication",
-      "via": "autor"
     }
   }
 }
