@@ -12,12 +12,21 @@
     "name": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": false
+    },
+    "voters": {
+      "type": "json"
+    },
+    "tags": {
+      "type": "json"
+    },
+    "candidates": {
+      "type": "json",
+      "required": true
     },
     "campaigns": {
-      "type": "component",
-      "repeatable": true,
-      "component": "campaign-category.campaign"
+      "type": "json",
+      "required": true
     }
   }
 }

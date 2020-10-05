@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_campaign_category_voters",
+  "info": {
+    "name": "voters",
+    "icon": "allergies"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "default": "_"
+    },
+    "second_name": {
+      "type": "string",
+      "default": "_"
+    },
+    "surname": {
+      "type": "string",
+      "default": "_"
+    },
+    "second_surname": {
+      "type": "string",
+      "default": "_"
+    }
+  }
+}
