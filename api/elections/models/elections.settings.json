@@ -27,6 +27,22 @@
     "campaigns": {
       "type": "json",
       "required": true
+    },
+    "uid": {
+      "type": "uid",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "no_active",
+        "closed",
+        "archived"
+      ],
+      "required": true,
+      "default": "no_active",
+      "enumName": "no_active"
     }
   }
 }
