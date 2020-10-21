@@ -14,11 +14,6 @@
     "commitments": {
       "type": "richtext"
     },
-    "integrants": {
-      "type": "component",
-      "repeatable": true,
-      "component": "campaign-category.integrants"
-    },
     "commitments_file": {
       "model": "file",
       "via": "related",
