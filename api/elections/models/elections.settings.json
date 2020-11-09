@@ -43,6 +43,10 @@
       "required": true,
       "default": "no_active",
       "enumName": "no_active"
+    },
+    "cargos": {
+      "type": "json",
+      "required": true
     }
   }
 }
