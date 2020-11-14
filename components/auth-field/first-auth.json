@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_auth_field_first_auths",
+  "info": {
+    "name": "first_auth",
+    "icon": "address-card"
+  },
+  "options": {},
+  "attributes": {
+    "active": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "field": {
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "default": "Auth1"
+    }
+  }
+}

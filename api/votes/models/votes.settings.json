@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "votes",
+  "info": {
+    "name": "votes"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true
+  },
+  "attributes": {
+    "election": {
+      "model": "elections"
+    },
+    "voter_identify": {
+      "type": "string",
+      "required": true
+    },
+    "campaign_slug": {
+      "type": "string",
+      "required": true
+    },
+    "tag_slug": {
+      "type": "string",
+      "required": true
+    }
+  }
+}
