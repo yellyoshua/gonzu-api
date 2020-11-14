@@ -1,0 +1,84 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/votes",
+      "handler": "votes.find",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/votes/:election_id/stats",
+      "handler": "votes.findByElection",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/votes/count",
+      "handler": "votes.count",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/votes/:id",
+      "handler": "votes.findOne",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/votes",
+      "handler": "votes.create",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/votes/:election_id/firstauth",
+      "handler": "votes.firstAuth",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/votes/:election_id/secondauth",
+      "handler": "votes.secondAuth",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/votes/:election_id/vote",
+      "handler": "votes.vote",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/votes/:id",
+      "handler": "votes.update",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/votes/:id",
+      "handler": "votes.delete",
+      "config": {
+        "policies": []
+      }
+    }
+  ]
+}

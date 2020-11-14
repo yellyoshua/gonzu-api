@@ -10,6 +10,14 @@
     },
     {
       "method": "GET",
+      "path": "/elections/public",
+      "handler": "elections.clientFind",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
       "path": "/elections/count",
       "handler": "elections.count",
       "config": {
@@ -20,6 +28,14 @@
       "method": "GET",
       "path": "/elections/:id",
       "handler": "elections.findOne",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/elections/public/:id",
+      "handler": "elections.clientFindOne",
       "config": {
         "policies": []
       }

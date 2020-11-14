@@ -47,6 +47,16 @@
     "cargos": {
       "type": "json",
       "required": true
+    },
+    "first_auth": {
+      "type": "component",
+      "repeatable": false,
+      "component": "auth-field.first-auth"
+    },
+    "second_auth": {
+      "type": "component",
+      "repeatable": false,
+      "component": "auth-field.first-auth"
     }
   }
 }
