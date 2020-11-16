@@ -146,15 +146,20 @@ module.exports = {
       const canCreate = !!voter && beFounded(campaigns_id, campaign_slug);
 
       if (canCreate) {
-        const entity = await strapi.services.votes.create({
-          election: election_id,
-          campaign_slug,
-          voter,
-          first_auth,
-          second_auth
-        });
-        sanitizeEntity(entity, { model: strapi.models.votes });
-        return 'ok';
+        try {
+          const entity = await strapi.services.votes.create({
+            election: election_id,
+            campaign_slug,
+            voter,
+            first_auth,
+            second_auth
+          });
+          sanitizeEntity(entity, { model: strapi.models.votes });
+          return 'ok';
+        } catch (error) {
+          console.log({ error });
+          return error;
+        }
       }
     }
 
