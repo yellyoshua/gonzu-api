@@ -31,7 +31,7 @@ module.exports = {
     const elections = entity.map(entity => {
       const election = sanitizeEntity(entity, { model: strapi.models.elections });
       const campaigns = _.indexBy(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
-      const candidates = _.indexBy(parseDoubleArrToObjArr(election.candidates) || [], 'campaign_slug');
+      const candidates = parseDoubleArrToObjArr(election.candidates) || [];
       const cargos = _.indexBy(election.cargos, 'slug');
       return _.omit({ ...election, campaigns, candidates, cargos }, [, 'voters', 'tags']);
     });
@@ -44,7 +44,7 @@ module.exports = {
     const election = sanitizeEntity(entity, { model: strapi.models.elections });
     if (election) {
       const campaigns = _.indexBy(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
-      const candidates = _.indexBy(parseDoubleArrToObjArr(election.candidates) || [], 'campaign_slug');
+      const candidates = parseDoubleArrToObjArr(election.candidates) || [];
       const cargos = _.indexBy(election.cargos, 'slug');
       return _.omit({ ...election, campaigns, candidates, cargos }, ['voters', 'tags']);
     }
