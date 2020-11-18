@@ -57,6 +57,14 @@
       }
     },
     {
+      "method": "PUT",
+      "path": "/elections/voters/:id",
+      "handler": "elections.updateVoters",
+      "config": {
+        "policies": []
+      }
+    },
+    {
       "method": "DELETE",
       "path": "/elections/:id",
       "handler": "elections.delete",

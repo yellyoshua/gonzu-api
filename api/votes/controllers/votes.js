@@ -36,54 +36,93 @@ function groupAndCount(list) {
 }
 
 module.exports = {
-  async findByElection(ctx) {
+  async votesGeneralStats(ctx) {
     const { election_id } = ctx.params;
-
     const entityElection = await strapi.services.elections.findOne({ id: election_id });
     const entityVotes = await strapi.services.votes.find({ election: election_id });
 
     const votes = entityVotes.map(entity => sanitizeEntity(entity, { model: strapi.models.votes }));
     const election = sanitizeEntity(entityElection, { model: strapi.models.elections });
 
-    const theElection = _.omit({ ...election }, ['campaigns', 'voters', 'tags']);
-    const vote_tags = _.pluck([...votes], 'tag_slug');
-    const vote_voters = _.pluck([...votes], 'voter');
-    const vote_voters_count = vote_voters.length;
-    const vote_tags_count = groupAndCount(vote_voters.map(voter => voter['tag_slug']));
-    const vote_tags_uniq = _.uniq([...vote_tags], false);
-    const vote_campaigns = _.pluck([...votes], 'campaign_slug');
-    const vote_campaigns_count = groupAndCount([...vote_campaigns]);
-    const vote_campaigns_uniq = _.uniq([...vote_campaigns], false);
-    const vote_count = votes.length;
+    if (election) {
+      const tags = election.tags;
+      const theElection = _.omit({ ...election }, ['campaigns', 'voters', 'tags']);
+      const campaigns = _.indexBy(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
+      const total_votes = votes.length;
+      const parsed_votes = votes.map(v => _.pick(v, 'campaign_slug', 'voter', 'first_auth', 'second_auth'));
+      const count_per_tag = _.mapObject(election.voters.data, function (voters = []) {
+        return voters.length;
+      });
+      let votes_group = { count_by_tag: {}, count_by_campaign: {} };
 
-    let tags = [];
-    let voters_tags_count = [];
-    let campaigns = [];
+      votes_group.count_by_tag = _.mapObject(
+        parsed_votes.reduce(function (total, obj) {
+          let key = _.keys(obj.voter)[0];
+          if (!total[key]) {
+            total[key] = [];
+          }
+          total[key].push({ ...obj.voter[key], campaign: obj.campaign_slug });
+          return total;
+        }, {}),
+        function (votes = []) {
+          return votes.length;
+        }
+      );
+
+      votes_group.count_by_campaign = _.mapObject(
+        parsed_votes.reduce(function (total, obj) {
+          let key = obj.campaign_slug;
+          if (!total[key]) {
+            total[key] = [];
+          }
+          total[key].push({ ...obj.voter, campaign: obj.campaign_slug });
+          return total;
+        }, {}),
+        function (votes = []) {
+          return votes.length;
+        }
+      );
+
+      return { ...theElection, tags, campaigns, count_per_tag, total_votes, votes_group };
+    }
+    return null;
+  },
+  async statsPerTag(ctx) {
+    const { election_id } = ctx.params;
+    const entityElection = await strapi.services.elections.findOne({ id: election_id });
+    const entityVotes = await strapi.services.votes.find({ election: election_id });
+
+    const votes = entityVotes.map(entity => sanitizeEntity(entity, { model: strapi.models.votes }));
+    const election = sanitizeEntity(entityElection, { model: strapi.models.elections });
 
     if (election) {
-      try {
-        const voters = parseDoubleArrToObjArr(election.voters.data) || [];
-        tags = _.indexBy(parseDoubleArrToObjArr(election.tags) || [], 'slug');
-        voters_tags_count = groupAndCount(_.pluck([...voters], 'tag_slug'));
-        campaigns = _.indexBy(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
-      } catch (error) {}
-    }
+      const tags = election.tags;
+      const theElection = _.omit({ ...election }, ['campaigns', 'voters', 'tags']);
+      const campaigns = _.indexBy(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
+      const parsed_votes = votes.map(v => _.pick(v, 'campaign_slug', 'voter', 'first_auth', 'second_auth'));
+      let votes_group = { group_by_tag: {}, group_by_campaign: {} };
 
-    return {
-      theElection,
-      tags,
-      voters_tags_count,
-      campaigns,
-      vote_tags,
-      vote_tags_count,
-      vote_tags_uniq,
-      vote_campaigns,
-      vote_campaigns_count,
-      vote_campaigns_uniq,
-      vote_voters,
-      vote_voters_count,
-      vote_count
-    };
+      votes_group.group_by_tag = parsed_votes.reduce(function (total, obj) {
+        let key = _.keys(obj.voter)[0];
+        if (!total[key]) {
+          total[key] = [];
+        }
+        total[key].push({ ...obj.voter[key], campaign: obj.campaign_slug });
+        return total;
+      }, {});
+
+      votes_group.group_by_campaign = parsed_votes.reduce(function (total, obj) {
+        let key = obj.campaign_slug;
+        if (!total[key]) {
+          total[key] = [];
+        }
+        total[key].push({ ...obj.voter, campaign: obj.campaign_slug });
+        return total;
+      }, {});
+
+      return { ...theElection, tags, campaigns, votes_group };
+    }
+    return null;
   },
   async firstAuth(ctx) {
     const { first_auth = '', value = '' } = ctx.request.body;
@@ -93,7 +132,7 @@ module.exports = {
     const beThereElection = Boolean(election);
 
     if (beThereElection) {
-      const voters_values = _.pluck(parseDoubleArrToObjArr(election.voters.data) || [], first_auth);
+      const voters_values = _.pluck(_.flatten(Object.values(election.voters.data)) || [], first_auth);
       if (voters_values.indexOf(value) !== -1) {
         return 'ok';
       }
@@ -108,7 +147,7 @@ module.exports = {
     const beThereElection = Boolean(election);
 
     if (beThereElection) {
-      const voters_values = _.pluck(parseDoubleArrToObjArr(election.voters.data) || [], second_auth);
+      const voters_values = _.pluck(_.flatten(Object.values(election.voters.data)) || [], second_auth);
       if (voters_values.indexOf(value) !== -1) {
         return 'ok';
       }
@@ -130,12 +169,21 @@ module.exports = {
     if (beThereElection && noHasVoted) {
       const { field: first_auth_field } = election.first_auth;
       const { field: second_auth_field } = election.second_auth;
+      let voter = {};
 
-      const voters_objs = parseDoubleArrToObjArr(election.voters.data) || [];
+      for (const tag of _.keys(election.voters.data)) {
+        const finded = _.findWhere(election.voters.data[tag], { [first_auth_field]: first_auth, [second_auth_field]: second_auth });
+        if (Boolean(finded)) {
+          voter[tag] = finded;
+          break;
+        }
+      }
 
-      const voter = voters_objs.find(voter => {
-        return voter[first_auth_field] === first_auth && voter[second_auth_field] === second_auth;
-      });
+      // const voters_objs = _.flatten(Object.values(election.voters.data));
+
+      // let voter = voters_objs.find(voter => {
+      //   return voter[first_auth_field] === first_auth && voter[second_auth_field] === second_auth;
+      // });
 
       const campaigns_id = _.pluck(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
 
@@ -143,7 +191,7 @@ module.exports = {
         return arr.indexOf(expectValue) !== -1;
       }
 
-      const canCreate = !!voter && beFounded(campaigns_id, campaign_slug);
+      const canCreate = !_.isEmpty(voter) && beFounded(campaigns_id, campaign_slug);
 
       if (canCreate) {
         try {

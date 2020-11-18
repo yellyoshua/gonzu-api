@@ -50,5 +50,27 @@ module.exports = {
     }
 
     return null;
+  },
+  async updateVoters(ctx) {
+    const { id } = ctx.params;
+    const theElection = ctx.request.body;
+
+    const entityElection = await strapi.services.elections.findOne({ id });
+    const election = sanitizeEntity(entityElection, { model: strapi.models.elections });
+
+    const entityVotes = await strapi.services.votes.find({ election: id });
+    const votes = entityVotes.map(e => sanitizeEntity(e, { model: strapi.models.votes }));
+
+    if (election) {
+      votes.forEach(async vote => {
+        try {
+          await strapi.services.votes.delete({ id: vote.id });
+        } catch (error) {}
+      });
+
+      const entity = await strapi.services.elections.update({ id }, theElection);
+      return sanitizeEntity(entity, { model: strapi.models.elections });
+    }
+    return null;
   }
 };
