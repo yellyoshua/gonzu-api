@@ -7,7 +7,7 @@
 
 module.exports = {
   beforeCreate(election) {
-    election.voters = election.voters || { data: [], fields: [] };
+    election.voters = election.voters || { data: {}, fields: [] };
     election.tags = election.tags || [];
     election.candidates = election.candidates || [];
     election.campaigns = election.campaigns || [];

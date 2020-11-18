@@ -11,7 +11,15 @@
     {
       "method": "GET",
       "path": "/votes/:election_id/stats",
-      "handler": "votes.findByElection",
+      "handler": "votes.votesGeneralStats",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/votes/:election_id/stats_per_tag",
+      "handler": "votes.statsPerTag",
       "config": {
         "policies": []
       }
