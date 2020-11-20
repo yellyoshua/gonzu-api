@@ -178,6 +178,7 @@ module.exports = {
 
       return ejs.renderFile(path.join(__dirname, './report-general-votes.ejs'), templateData, async (err, data) => {
         if (err) {
+          console.log({ errRender: err });
           return null;
         }
         const fileName = uuidv4() + '.pdf';
@@ -186,6 +187,7 @@ module.exports = {
           await pdf.create(data, pdfConf).toFile('public/uploads/' + fileName, () => null);
           return ctx.send(filelink);
         } catch (error) {
+          console.log({ errorPdf: error });
           return null;
         }
       });
@@ -305,7 +307,7 @@ module.exports = {
 
       return ejs.renderFile(path.join(__dirname, './report-votes-per-tag.ejs'), templateData, async (err, data) => {
         if (err) {
-          console.log(err);
+          console.log({ errRender });
           return null;
         }
         const fileName = uuidv4() + '.pdf';
@@ -315,6 +317,7 @@ module.exports = {
           await pdf.create(data, pdfConf).toFile('public/uploads/' + fileName, () => null);
           return ctx.send(filelink);
         } catch (error) {
+          console.log({ errorPdf: error });
           return null;
         }
       });
