@@ -1,4 +1,8 @@
 'use strict';
+const ejs = require('ejs');
+const pdf = require('html-pdf');
+const fs = require('fs');
+const path = require('path');
 const _ = require('underscore');
 const { sanitizeEntity } = require('strapi-utils');
 
@@ -25,6 +29,14 @@ function parseDoubleArrToObjArr(arr) {
   return [];
 }
 
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 function groupAndCount(list) {
   return _.chain(list)
     .flatten()
@@ -34,9 +46,63 @@ function groupAndCount(list) {
     }, {})
     .value();
 }
+const pdfConf = { format: 'A4', border: { bottom: '1.5cm', top: '1.5cm', left: '1.5cm', right: '1.5cm' } };
 
 module.exports = {
   async votesGeneralStats(ctx) {
+    const { election_id } = ctx.params;
+    const entityElection = await strapi.services.elections.findOne({ id: election_id });
+    const entityVotes = await strapi.services.votes.find({ election: election_id });
+
+    const votes = entityVotes.map(entity => sanitizeEntity(entity, { model: strapi.models.votes }));
+    const election = sanitizeEntity(entityElection, { model: strapi.models.elections });
+
+    if (election) {
+      const tags = election.tags;
+      const voters_fields = election.voters.fields;
+      const theElection = _.omit({ ...election }, ['campaigns', 'voters', 'tags']);
+      const campaigns = _.indexBy(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
+      const total_votes = votes.length;
+      const parsed_votes = votes.map(v => _.pick(v, 'campaign_slug', 'voter', 'first_auth', 'second_auth'));
+      const count_per_tag = _.mapObject(election.voters.data, function (voters = []) {
+        return voters.length;
+      });
+      let votes_group = { count_by_tag: {}, count_by_campaign: {} };
+
+      votes_group.count_by_tag = _.mapObject(
+        parsed_votes.reduce(function (total, obj) {
+          let key = _.keys(obj.voter)[0];
+          if (!total[key]) {
+            total[key] = [];
+          }
+          total[key].push({ ...obj.voter[key], campaign: obj.campaign_slug });
+          return total;
+        }, {}),
+        function (votes = []) {
+          return votes.length;
+        }
+      );
+
+      votes_group.count_by_campaign = _.mapObject(
+        parsed_votes.reduce(function (total, obj) {
+          let key = obj.campaign_slug;
+          if (!total[key]) {
+            total[key] = [];
+          }
+          total[key].push({ ...obj.voter, campaign: obj.campaign_slug });
+          return total;
+        }, {}),
+        function (votes = []) {
+          return votes.length;
+        }
+      );
+
+      return { ...theElection, tags, campaigns, count_per_tag, total_votes, votes_group, voters_fields };
+    }
+    return null;
+  },
+  async reportGeneral(ctx) {
+    const { schoolname = '', schoolicon = '' } = ctx.query;
     const { election_id } = ctx.params;
     const entityElection = await strapi.services.elections.findOne({ id: election_id });
     const entityVotes = await strapi.services.votes.find({ election: election_id });
@@ -83,11 +149,51 @@ module.exports = {
         }
       );
 
-      return { ...theElection, tags, campaigns, count_per_tag, total_votes, votes_group };
+      function getStats(stats) {
+        const tags = stats.tags;
+        const campaigns = Object.keys(stats.campaigns);
+
+        const totalTags = stats.tags.length;
+        const totalCampaigns = Object.keys(stats.campaigns).length;
+        const totalVotes = stats.total_votes;
+        const totalParticipants = Object.keys(stats.count_per_tag)
+          .map(t => {
+            return stats.count_per_tag[t];
+          })
+          .reduce((p, c) => p + c, 0);
+        const votesRestantes = totalParticipants - totalVotes;
+        return {
+          tags,
+          campaigns,
+          totalTags,
+          totalCampaigns,
+          totalVotes,
+          votesRestantes,
+          totalParticipants
+        };
+      }
+
+      const data = getStats({ tags, campaigns, count_per_tag, total_votes });
+      const templateData = { ...data, votes_group, campaigns_list: campaigns, count_per_tag, name: election.name, schoolname, schoolicon };
+
+      return ejs.renderFile(path.join(__dirname, './report-general-votes.ejs'), templateData, async (err, data) => {
+        if (err) {
+          return null;
+        }
+        const fileName = uuidv4() + '.pdf';
+        const filelink = '/uploads/' + fileName;
+        try {
+          await pdf.create(data, pdfConf).toFile('public/uploads/' + fileName, () => null);
+          return ctx.send(filelink);
+        } catch (error) {
+          return null;
+        }
+      });
     }
     return null;
   },
   async statsPerTag(ctx) {
+    const { tag = null, fields = null } = ctx.query;
     const { election_id } = ctx.params;
     const entityElection = await strapi.services.elections.findOne({ id: election_id });
     const entityVotes = await strapi.services.votes.find({ election: election_id });
@@ -95,8 +201,10 @@ module.exports = {
     const votes = entityVotes.map(entity => sanitizeEntity(entity, { model: strapi.models.votes }));
     const election = sanitizeEntity(entityElection, { model: strapi.models.elections });
 
-    if (election) {
+    if (election && tag && fields) {
       const tags = election.tags;
+      const wrongTag = _.indexOf(tags, tag, false);
+      if (wrongTag) return null;
       const theElection = _.omit({ ...election }, ['campaigns', 'voters', 'tags']);
       const campaigns = _.indexBy(parseDoubleArrToObjArr(election.campaigns) || [], 'slug');
       const parsed_votes = votes.map(v => _.pick(v, 'campaign_slug', 'voter', 'first_auth', 'second_auth'));
@@ -121,6 +229,95 @@ module.exports = {
       }, {});
 
       return { ...theElection, tags, campaigns, votes_group };
+    }
+    return null;
+  },
+  async reportPerTag(ctx) {
+    const { tag = null, fields = null, schoolname = '', schoolicon = '' } = ctx.query;
+
+    const { election_id } = ctx.params;
+    const entityElection = await strapi.services.elections.findOne({ id: election_id });
+    const entityVotes = await strapi.services.votes.find({ election: election_id });
+
+    const votes = entityVotes.map(entity => sanitizeEntity(entity, { model: strapi.models.votes }));
+    const election = sanitizeEntity(entityElection, { model: strapi.models.elections });
+
+    if (election && tag && fields) {
+      const theElection = _.omit({ ...election }, ['candidates', 'cargos']);
+      const tags = theElection.tags;
+
+      const wrongTag = _.indexOf(tags, tag, false) === -1;
+      if (wrongTag) return null;
+      const { field: first_auth_field } = theElection.first_auth;
+      const { field: second_auth_field } = theElection.second_auth;
+      const voter_keys = String(fields).split(',').slice(0, 3);
+      const voter_tag = String(tag).trim();
+      const voters = theElection.voters.data;
+
+      const campaigns = _.indexBy(parseDoubleArrToObjArr(theElection.campaigns) || [], 'slug');
+      const parsed_votes = votes.map(v => _.pick(v, 'campaign_slug', 'voter', 'first_auth', 'second_auth'));
+      const campaigns_key_list = _.keys(campaigns);
+      let votes_group = { group_by_tag: {}, group_by_campaign: {} };
+
+      votes_group.group_by_tag = parsed_votes.reduce(function (total, obj) {
+        let key = _.keys(obj.voter)[0];
+        if (!total[key]) {
+          total[key] = [];
+        }
+        total[key].push({ ...obj.voter[key], campaign: obj.campaign_slug });
+        return total;
+      }, {});
+
+      votes_group.group_by_campaign = parsed_votes.reduce(function (total, obj) {
+        let key = obj.campaign_slug;
+        if (!total[key]) {
+          total[key] = [];
+        }
+        total[key].push({ ...obj.voter, campaign: obj.campaign_slug });
+        return total;
+      }, {});
+
+      function hasVote(arr = [], search = {}) {
+        return _.findIndex(arr, function (item) {
+          return _.isMatch(item, search);
+        });
+      }
+      function toUpperCase(valor = '') {
+        return valor.toUpperCase();
+      }
+
+      const templateData = {
+        tags,
+        campaigns,
+        hasVote,
+        toUpperCase,
+        first_auth_field,
+        second_auth_field,
+        votes_group,
+        voters,
+        campaigns_key_list,
+        voter_keys,
+        voter_tag,
+        name: election.name,
+        schoolname,
+        schoolicon
+      };
+
+      return ejs.renderFile(path.join(__dirname, './report-votes-per-tag.ejs'), templateData, async (err, data) => {
+        if (err) {
+          console.log(err);
+          return null;
+        }
+        const fileName = uuidv4() + '.pdf';
+        const filelink = '/uploads/' + fileName;
+
+        try {
+          await pdf.create(data, pdfConf).toFile('public/uploads/' + fileName, () => null);
+          return ctx.send(filelink);
+        } catch (error) {
+          return null;
+        }
+      });
     }
     return null;
   },
