@@ -3,6 +3,7 @@ FROM node:12.18-alpine
 
 COPY . /srv/app
 WORKDIR /srv/app
+RUN mkdir -p /srv/app/public/uploads/
 
 ENV PORT=4000
 ENV HOST=0.0.0.0

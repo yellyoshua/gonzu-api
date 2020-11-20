@@ -26,6 +26,22 @@
     },
     {
       "method": "GET",
+      "path": "/votes/:election_id/reportgeneral",
+      "handler": "votes.reportGeneral",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/votes/:election_id/report_per_tag",
+      "handler": "votes.reportPerTag",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
       "path": "/votes/count",
       "handler": "votes.count",
       "config": {
