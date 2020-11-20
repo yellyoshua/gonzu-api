@@ -181,18 +181,12 @@ module.exports = {
           console.log({ errRender: err });
           return null;
         }
-        const fileName = uuidv4() + '.pdf';
-        const filelink = '/uploads/' + fileName;
-        try {
-          await pdf.create(data, pdfConf).toFile('public/uploads/' + fileName, () => null);
-          return ctx.send(filelink);
-        } catch (error) {
-          console.log({ errorPdf: error });
-          return null;
-        }
+        return ctx.send(data);
       });
+    } else {
+      console.log({ election });
+      return null;
     }
-    return null;
   },
   async statsPerTag(ctx) {
     const { tag = null, fields = null } = ctx.query;
@@ -310,16 +304,7 @@ module.exports = {
           console.log({ errRender });
           return null;
         }
-        const fileName = uuidv4() + '.pdf';
-        const filelink = '/uploads/' + fileName;
-
-        try {
-          await pdf.create(data, pdfConf).toFile('public/uploads/' + fileName, () => null);
-          return ctx.send(filelink);
-        } catch (error) {
-          console.log({ errorPdf: error });
-          return null;
-        }
+        return ctx.send(data);
       });
     }
     return null;
